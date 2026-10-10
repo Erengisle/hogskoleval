@@ -79,6 +79,17 @@ input[type=range]{flex:1 1 200px;accent-color:var(--accent)}
 .s-ok{background:var(--ok-bg)} .s-hp{background:var(--hp-bg)}
 .s-near{background:var(--near-bg)} .s-no{background:var(--no-bg)} .s-test{background:var(--test-bg)}
 
+.more{margin-top:6px;font-size:.86rem}
+.more summary{cursor:pointer;color:var(--accent);font-weight:600;list-style:none;display:inline-block}
+.more summary::-webkit-details-marker{display:none}
+.more summary::before{content:"▸ ";}
+.more[open] summary::before{content:"▾ ";}
+.req{margin:6px 0 0;padding:8px 10px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+.req p{margin:0 0 4px;font-size:.84rem;color:var(--muted)}
+.req ul{margin:0;padding-left:0;list-style:none}
+.req li{font-size:.86rem;padding:2px 0}
+.req li.warn{color:var(--no);font-weight:600}
+.req li.warn small{display:block;font-weight:400;color:var(--muted)}
 .section-title{font-size:1.35rem;margin:34px 0 12px}
 .quota{display:grid;grid-template-columns:3fr 2fr;gap:18px}
 @media (max-width:900px){.quota{grid-template-columns:1fr}}
@@ -197,7 +208,7 @@ footer{color:var(--muted);font-size:.82rem;margin-top:24px}
     <div class="panel">
       <h2>Kom ihåg</h2>
       <ul>
-        <li><b>Behörighet först.</b> Program märkta <span class="tag">Kräver Ma 3b</span> kräver Matematik 3b. Den ingår inte automatiskt i ekonomiprogrammet. Kolla alltid kraven på antagning.se.</li>
+        <li><b>Behörighet först.</b> Klicka på <b>Läs mer</b> i en ruta för att se vilka kurser som krävs. Alla program kräver <b>gymnasieexamen</b>: minst 2 250 godkända poäng av 2 500, och godkänt i svenska/svenska som andraspråk 1–3, engelska 5–6, matematik 1 och gymnasiearbetet. Program märkta <span class="tag">Kräver Ma 3b</span> kräver Matematik 3b, som inte ingår automatiskt i ekonomiprogrammet. De andra kurserna brukar ingå – kolla din studieplan och antagning.se.</li>
         <li><b>Våren är ofta lättare.</b> Många program startar också i januari, och då är gränsen ofta lägre.</li>
         <li><b>”Alla in”</b> betyder att alla som hade rätt kurser kom in, oavsett betyg.</li>
         <li><b>Polisutbildningen</b> (Södertörn) har inget betygsurval. Du behöver gymnasieexamen och minst E i <b>Svenska 3</b> (eller Svenska som andraspråk 3), <b>Engelska 6</b> och <b>Samhällskunskap 1b</b> (eller 1a1 + 1a2). Höga betyg ger ingen förtur – sedan avgör fysiska, medicinska och psykologiska tester. Du måste vara 18 år och ha B-körkort när utbildningen startar.</li>
@@ -219,53 +230,71 @@ const UNIS = [
 // hpAll:true = alla med provresultat antogs i HP-gruppen. ma3: kräver Matematik 3b. vt: siffror från VT 2026. note: specialnotering.
 const P = [
   // Stockholms universitet
-  {u:"su",n:"Juristprogrammet",a:"Juridik",bi:20.68,hp:1.40,y:"4,5 år"},
-  {u:"su",n:"Kriminologi",a:"Juridik",bi:20.00,hp:1.20,y:"3 år"},
-  {u:"su",n:"Företagsekonomi (ekonomie kandidat)",a:"Ekonomi",bi:19.90,hp:1.30,y:"3 år",ma3:true},
-  {u:"su",n:"Journalistprogrammet",a:"Media & kommunikation",bi:19.60,hp:1.20,y:"3 år",note:"Ingen antagning 2026 – siffror från 2025"},
-  {u:"su",n:"Socionomprogrammet",a:"Socialt arbete",bi:18.65,hp:1.00,y:"3,5 år"},
-  {u:"su",n:"Personal, arbete och organisation (HR)",a:"Samhälle & beteende",bi:18.27,hp:0.95,y:"3 år"},
-  {u:"su",n:"Data- och systemvetenskap",a:"IT",bi:18.02,hp:1.15,y:"3 år"},
-  {u:"su",n:"Ämneslärare gymnasiet – samhällskunskap och historia",a:"Lärare",bi:17.91,hp:0.95,y:"5,5 år"},
-  {u:"su",n:"Statsvetenskap och offentlig styrning",a:"Samhälle & beteende",bi:17.30,hp:1.00,y:"3 år"},
-  {u:"su",n:"Pedagogik – ledarskap och kommunikation",a:"Samhälle & beteende",bi:17.14,hp:0.60,y:"3 år"},
-  {u:"su",n:"Sociologisk samhällsanalys",a:"Samhälle & beteende",bi:17.08,hp:0.90,y:"3 år"},
-  {u:"su",n:"Sociologi – arbetsliv och arbetsmarknad",a:"Samhälle & beteende",bi:14.84,hp:0.60,y:"3 år"},
-  {u:"su",n:"Ämneslärare gymnasiet – samhällskunskap och svenska som andraspråk",a:"Lärare",bi:14.53,hpAll:true,y:"5,5 år"},
-  {u:"su",n:"Grundlärare åk 4–6",a:"Lärare",all:true,y:"4 år"},
-  {u:"su",n:"Grundlärare F–3",a:"Lärare",all:true,y:"4 år"},
-  {u:"su",n:"Förskollärare",a:"Lärare",all:true,y:"3,5 år"},
+  {u:"su",n:"Juristprogrammet",r:"Hi1b Sh1b",a:"Juridik",bi:20.68,hp:1.40,y:"4,5 år"},
+  {u:"su",n:"Kriminologi",r:"Ma2 Sh1b",a:"Juridik",bi:20.00,hp:1.20,y:"3 år"},
+  {u:"su",n:"Företagsekonomi (ekonomie kandidat)",r:"En6 Ma3 Sh1b",a:"Ekonomi",bi:19.90,hp:1.30,y:"3 år"},
+  {u:"su",n:"Journalistprogrammet",r:"Hi1b Sh1b",a:"Media & kommunikation",bi:19.60,hp:1.20,y:"3 år",note:"Ingen antagning 2026 – siffror från 2025"},
+  {u:"su",n:"Socionomprogrammet",r:"Ma2 Sh1b",a:"Socialt arbete",bi:18.65,hp:1.00,y:"3,5 år"},
+  {u:"su",n:"Personal, arbete och organisation (HR)",r:"En6 Ma3 Sh1b",a:"Samhälle & beteende",bi:18.27,hp:0.95,y:"3 år"},
+  {u:"su",n:"Data- och systemvetenskap",r:"Ma2 Sh1b",a:"IT",bi:18.02,hp:1.15,y:"3 år"},
+  {u:"su",n:"Ämneslärare gymnasiet – samhällskunskap och historia",r:"En6 Sh2 Hi1b Ma2",a:"Lärare",bi:17.91,hp:0.95,y:"5,5 år"},
+  {u:"su",n:"Statsvetenskap och offentlig styrning",r:"En6 Ma3 Sh1b",a:"Samhälle & beteende",bi:17.30,hp:1.00,y:"3 år"},
+  {u:"su",n:"Pedagogik – ledarskap och kommunikation",r:"",a:"Samhälle & beteende",bi:17.14,hp:0.60,y:"3 år"},
+  {u:"su",n:"Sociologisk samhällsanalys",r:"Ma2 Sh1b",a:"Samhälle & beteende",bi:17.08,hp:0.90,y:"3 år"},
+  {u:"su",n:"Sociologi – arbetsliv och arbetsmarknad",r:"En6 Ma3 Sh1b",a:"Samhälle & beteende",bi:14.84,hp:0.60,y:"3 år"},
+  {u:"su",n:"Ämneslärare gymnasiet – samhällskunskap och svenska som andraspråk",r:"En6 Sh2 Ma2",a:"Lärare",bi:14.53,hpAll:true,y:"5,5 år"},
+  {u:"su",n:"Grundlärare åk 4–6",r:"En6 Ma2 Nk1b Sh1b",a:"Lärare",all:true,y:"4 år"},
+  {u:"su",n:"Grundlärare F–3",r:"En6 Ma2 Nk1b Sh1b",a:"Lärare",all:true,y:"4 år"},
+  {u:"su",n:"Förskollärare",r:"En6 Nk1b Sh1b",a:"Lärare",all:true,y:"3,5 år"},
   // Södertörns högskola
-  {u:"sh",n:"Juridik – affärsrätt och offentlig rätt",a:"Juridik",bi:18.88,hp:1.10,y:"3 år"},
-  {u:"sh",n:"Personalvetarprogrammet – sociologi (HR)",a:"Samhälle & beteende",bi:18.33,hp:0.90,y:"3 år"},
-  {u:"sh",n:"Ekonomie kandidat – företagsekonomi",a:"Ekonomi",bi:18.11,hp:1.00,y:"3 år",ma3:true},
-  {u:"sh",n:"Socionomprogrammet – storstadsprofil",a:"Socialt arbete",bi:18.02,hp:0.85,y:"3,5 år"},
-  {u:"sh",n:"Entreprenörskap, innovation och marknad",a:"Ekonomi",bi:17.36,hp:0.85,y:"3 år"},
-  {u:"sh",n:"Management med IT",a:"IT",bi:17.30,hp:1.00,y:"3 år"},
-  {u:"sh",n:"Internationella ekonomprogrammet",a:"Ekonomi",bi:16.97,hp:0.85,y:"3 år",ma3:true},
-  {u:"sh",n:"Journalistik och digitala medier",a:"Media & kommunikation",bi:16.61,hp:0.85,y:"3 år"},
-  {u:"sh",n:"Sport management",a:"Ekonomi",bi:15.97,hp:0.80,y:"3 år"},
-  {u:"sh",n:"Internationella medievetarprogrammet",a:"Media & kommunikation",bi:15.85,hp:0.60,y:"3 år",vt:true},
-  {u:"sh",n:"Digital affärsutveckling inom event och projekt",a:"Ekonomi",bi:15.82,hp:0.70,y:"3 år"},
-  {u:"sh",n:"Pedagogik – ledarskap och delaktighet",a:"Samhälle & beteende",bi:14.70,hp:0.35,y:"3 år"},
-  {u:"sh",n:"Globala utvecklingsstudier",a:"Samhälle & beteende",bi:12.29,hpAll:true,y:"3 år"},
-  {u:"sh",n:"Retorikprogrammet – samhälle och strategisk kommunikation",a:"Media & kommunikation",all:true,y:"3 år"},
-  {u:"sh",n:"Hållbarhetsstrateg",a:"Samhälle & beteende",all:true,y:"3 år"},
-  {u:"sh",n:"Grundlärare F–3 – interkulturell profil",a:"Lärare",all:true,y:"4 år"},
-  {u:"sh",n:"Polisutbildningen",a:"Polis",polis:true,y:"2,5 år"},
+  {u:"sh",n:"Juridik – affärsrätt och offentlig rätt",r:"Hi1b Sh1b",a:"Juridik",bi:18.88,hp:1.10,y:"3 år"},
+  {u:"sh",n:"Personalvetarprogrammet – sociologi (HR)",r:"",a:"Samhälle & beteende",bi:18.33,hp:0.90,y:"3 år"},
+  {u:"sh",n:"Ekonomie kandidat – företagsekonomi",r:"Ma3 Sh1b",a:"Ekonomi",bi:18.11,hp:1.00,y:"3 år"},
+  {u:"sh",n:"Socionomprogrammet – storstadsprofil",r:"Ma2 Sh1b",a:"Socialt arbete",bi:18.02,hp:0.85,y:"3,5 år"},
+  {u:"sh",n:"Entreprenörskap, innovation och marknad",r:"En6 Sh1b",a:"Ekonomi",bi:17.36,hp:0.85,y:"3 år"},
+  {u:"sh",n:"Management med IT",r:"En6 Ma3 Sh1b",a:"IT",bi:17.30,hp:1.00,y:"3 år"},
+  {u:"sh",n:"Internationella ekonomprogrammet",r:"En6 Ma3 Sh1b",a:"Ekonomi",bi:16.97,hp:0.85,y:"3 år"},
+  {u:"sh",n:"Journalistik och digitala medier",r:"",a:"Media & kommunikation",bi:16.61,hp:0.85,y:"3 år"},
+  {u:"sh",n:"Sport management",r:"Ma3 Sh1b",a:"Ekonomi",bi:15.97,hp:0.80,y:"3 år"},
+  {u:"sh",n:"Internationella medievetarprogrammet",r:"En6 Sh1b",a:"Media & kommunikation",bi:15.85,hp:0.60,y:"3 år",vt:true},
+  {u:"sh",n:"Digital affärsutveckling inom event och projekt",r:"",a:"Ekonomi",bi:15.82,hp:0.70,y:"3 år"},
+  {u:"sh",n:"Pedagogik – ledarskap och delaktighet",r:"",a:"Samhälle & beteende",bi:14.70,hp:0.35,y:"3 år"},
+  {u:"sh",n:"Globala utvecklingsstudier",r:"En6 Sh1b",a:"Samhälle & beteende",bi:12.29,hpAll:true,y:"3 år"},
+  {u:"sh",n:"Retorikprogrammet – samhälle och strategisk kommunikation",r:"",a:"Media & kommunikation",all:true,y:"3 år"},
+  {u:"sh",n:"Hållbarhetsstrateg",r:"En6 Ma2 Nk1b Sh1b",a:"Samhälle & beteende",all:true,y:"3 år"},
+  {u:"sh",n:"Grundlärare F–3 – interkulturell profil",r:"En6 Ma2 Nk1b Sh1b",a:"Lärare",all:true,y:"4 år"},
+  {u:"sh",n:"Polisutbildningen",r:"Sv3 En6 Sh1b",a:"Polis",polis:true,y:"2,5 år"},
   // Örebro universitet
-  {u:"oru",n:"Juristprogrammet",a:"Juridik",bi:20.21,hp:1.25,y:"4,5 år"},
-  {u:"oru",n:"Civilekonomprogrammet",a:"Ekonomi",bi:19.27,hp:1.20,y:"4 år",ma3:true},
-  {u:"oru",n:"Kriminologiprogrammet",a:"Juridik",bi:19.22,hp:1.00,y:"3 år"},
-  {u:"oru",n:"Personalvetarprogrammet (HR)",a:"Samhälle & beteende",bi:18.50,hp:0.90,y:"3 år"},
-  {u:"oru",n:"Socionomprogrammet",a:"Socialt arbete",bi:18.13,hp:0.85,y:"3,5 år"},
-  {u:"oru",n:"Systemvetenskapliga programmet",a:"IT",bi:17.86,hp:1.00,y:"3 år"},
-  {u:"oru",n:"Medier, kommunikation och PR",a:"Media & kommunikation",bi:16.93,hp:0.75,y:"3 år"},
-  {u:"oru",n:"Ämneslärare gymnasiet – samhällskunskap och historia",a:"Lärare",bi:13.49,hpAll:true,y:"5 år"},
-  {u:"oru",n:"Språk, retorik och kommunikativt ledarskap",a:"Media & kommunikation",all:true,y:"3 år"},
-  {u:"oru",n:"Grundlärare F–3",a:"Lärare",all:true,y:"4 år"}
+  {u:"oru",n:"Juristprogrammet",r:"Hi1b Sh1b",a:"Juridik",bi:20.21,hp:1.25,y:"4,5 år"},
+  {u:"oru",n:"Civilekonomprogrammet",r:"En6 Ma3 Sh1b",a:"Ekonomi",bi:19.27,hp:1.20,y:"4 år"},
+  {u:"oru",n:"Kriminologiprogrammet",r:"Ma2 Sh1b",a:"Juridik",bi:19.22,hp:1.00,y:"3 år"},
+  {u:"oru",n:"Personalvetarprogrammet (HR)",r:"",a:"Samhälle & beteende",bi:18.50,hp:0.90,y:"3 år"},
+  {u:"oru",n:"Socionomprogrammet",r:"Ma2 Sh1b",a:"Socialt arbete",bi:18.13,hp:0.85,y:"3,5 år"},
+  {u:"oru",n:"Systemvetenskapliga programmet",r:"",a:"IT",bi:17.86,hp:1.00,y:"3 år"},
+  {u:"oru",n:"Medier, kommunikation och PR",r:"En6 Sh1b",a:"Media & kommunikation",bi:16.93,hp:0.75,y:"3 år"},
+  {u:"oru",n:"Ämneslärare gymnasiet – samhällskunskap och historia",r:"En6 Sh2 Hi1b Ma2",a:"Lärare",bi:13.49,hpAll:true,y:"5 år"},
+  {u:"oru",n:"Språk, retorik och kommunikativt ledarskap",r:"",a:"Media & kommunikation",all:true,y:"3 år"},
+  {u:"oru",n:"Grundlärare F–3",r:"En6 Ma2 Nk1b Sh1b",a:"Lärare",all:true,y:"4 år"}
 ];
 
+const COURSES = {
+  Sv3:"Svenska 3 (eller Svenska som andraspråk 3)",
+  En6:"Engelska 6", Ma2:"Matematik 2 (2a, 2b eller 2c)", Ma3:"Matematik 3b (eller 3c)",
+  Sh1b:"Samhällskunskap 1b (eller 1a1 + 1a2)", Sh2:"Samhällskunskap 2",
+  Hi1b:"Historia 1b (eller 1a1 + 1a2)", Nk1b:"Naturkunskap 1b (eller 1a1 + 1a2)"
+};
+function reqHtml(p){
+  const codes = p.r ? p.r.split(" ") : [];
+  let li = `<li>✓ Gymnasieexamen (högskoleförberedande)</li>`;
+  codes.forEach(c=>{
+    li += c==="Ma3"
+      ? `<li class="warn">⚠ ${COURSES[c]} – minst E<small>Ingår inte automatiskt i ekonomiprogrammet. Har du inte valt den måste du läsa den, t.ex. på komvux.</small></li>`
+      : `<li>✓ ${COURSES[c]} – minst E</li>`;
+  });
+  const extra = codes.length ? "" : `<p style="margin-top:6px">Inga särskilda kurser krävs – bara gymnasieexamen.</p>`;
+  const polis = p.polis ? `<p style="margin-top:6px">Därefter: fysiska, medicinska och psykologiska tester. 18 år och B-körkort när utbildningen startar.</p>` : "";
+  return `<details class="more"><summary>Läs mer: det här krävs</summary><div class="req"><p>För att få söka behöver du:</p><ul>${li}</ul>${extra}${polis}</div></details>`;
+}
 const fmt = v => v.toFixed(2).replace(".",",");
 let mv = 11.25, hp = 1.0, hpOn = false, area = "Alla";
 
@@ -307,11 +336,12 @@ function render(){
     list.sort((a,b)=> order[status(a)]-order[status(b)] || (b.bi||0)-(a.bi||0));
     const items = list.map(p=>{
       const s = status(p);
+      p.ma3 = (p.r||"").split(" ").includes("Ma3");
       const tags = (s==="hp"?`<span class="tag hp">In via högskoleprovet</span>`:"")
         + (p.ma3?`<span class="tag">Kräver Ma 3b</span>`:"")
         + (p.vt?`<span class="tag">Start i januari (VT)</span>`:"")
         + (p.note?`<span class="tag">${p.note}</span>`:"");
-      return `<div class="prog s-${s}"><div><div class="name">${p.n}</div><div class="meta">${p.a} · ${p.y}</div>${tags}</div><div class="score">${scoreHtml(p)}</div></div>`;
+      return `<div class="prog s-${s}"><div><div class="name">${p.n}</div><div class="meta">${p.a} · ${p.y}</div>${tags}${reqHtml(p)}</div><div class="score">${scoreHtml(p)}</div></div>`;
     }).join("") || `<p class="where">Inga program i det här området.</p>`;
     cols.insertAdjacentHTML("beforeend",
       `<section class="col"><h2>${u.name}</h2><p class="where">${u.where}</p>${items}</section>`);
