@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vart kommer jag in?</title>
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1d1f24; --muted:#5d6370; --line:#e3e0d8;
+  --accent:#23408e; --accent-ink:#ffffff;
+  --ok:#1f7a4a; --ok-bg:#e3f4ea;
+  --near:#8a5a00; --near-bg:#fdf1d6;
+  --no:#a33a2f; --no-bg:#fbe6e3;
+  --test:#3b4f86; --test-bg:#e6ebf7;
+  --hp:#7a3e9d; --hp-bg:#f1e6f8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171c; --card:#1e2128; --ink:#eceef2; --muted:#a3a9b6; --line:#2e323b;
+    --accent:#8fa8ff; --accent-ink:#11131a;
+    --ok:#7fd6a4; --ok-bg:#1b3527; --near:#f1c46b; --near-bg:#3a2f15;
+    --no:#f19a8f; --no-bg:#3d1f1c; --test:#a9b8ee; --test-bg:#232c45;
+    --hp:#d6a8f0; --hp-bg:#33233f;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 60px}
+h1{font-size:clamp(1.7rem,3.4vw,2.5rem);margin:0 0 4px;letter-spacing:-.01em}
+.lead{color:var(--muted);margin:0 0 22px;max-width:64ch}
+
+.controls{display:grid;grid-template-columns:3fr 2fr;gap:18px;margin-bottom:18px}
+@media (max-width:900px){.controls{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+.panel h2{font-size:1.05rem;margin:0 0 12px}
+.presets{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.preset{flex:1 1 200px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:12px 14px;text-align:left;cursor:pointer;font:inherit}
+.preset b{display:block;font-size:1.2rem}
+.preset span{color:var(--muted);font-size:.9rem}
+.preset[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.slider-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.slider-row label{font-weight:600}
+input[type=range]{flex:1 1 200px;accent-color:var(--accent)}
+#hp{accent-color:var(--hp)}
+.mv{font-size:1.9rem;font-weight:700;min-width:4.6ch;text-align:right;font-variant-numeric:tabular-nums}
+.hint{color:var(--muted);font-size:.88rem;margin:8px 0 0}
+.switch{display:flex;align-items:center;gap:10px;font-weight:600;cursor:pointer;margin-bottom:12px}
+.switch input{width:20px;height:20px;accent-color:var(--hp)}
+.hp-off .slider-row{opacity:.4;pointer-events:none}
+
+.filters{margin-bottom:18px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;font:inherit;font-size:.92rem}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.88rem;color:var(--muted);margin:10px 0 0}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:6px}
+
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px}
+.sum{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.sum h3{margin:0 0 4px;font-size:1rem}
+.sum p{margin:0;color:var(--muted);font-size:.92rem}
+.sum strong{color:var(--ok);font-size:1.4rem}
+
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:960px){.cols{grid-template-columns:1fr}}
+.col h2{font-size:1.15rem;margin:0 0 2px}
+.col .where{color:var(--muted);font-size:.88rem;margin:0 0 10px}
+.prog{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;margin-bottom:8px}
+.prog .name{font-weight:600;line-height:1.3}
+.prog .meta{font-size:.82rem;color:var(--muted);margin-top:2px}
+.tag{display:inline-block;font-size:.74rem;font-weight:600;padding:1px 7px;border-radius:6px;background:var(--card);border:1px solid var(--line);color:var(--ink);margin-top:4px;margin-right:4px}
+.tag.hp{border-color:var(--hp);color:var(--hp)}
+.score{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-size:.84rem;line-height:1.35}
+.score .row{display:flex;justify-content:flex-end;gap:6px;align-items:baseline}
+.score .lbl{color:var(--muted);font-size:.74rem}
+.score b{font-size:1.02rem}
+.score .hit{color:var(--ok)}
+.score .miss{color:var(--muted)}
+.s-ok{background:var(--ok-bg)} .s-hp{background:var(--hp-bg)}
+.s-near{background:var(--near-bg)} .s-no{background:var(--no-bg)} .s-test{background:var(--test-bg)}
+
+.section-title{font-size:1.35rem;margin:34px 0 12px}
+.quota{display:grid;grid-template-columns:3fr 2fr;gap:18px}
+@media (max-width:900px){.quota{grid-template-columns:1fr}}
+.bar{display:flex;height:54px;border-radius:12px;overflow:hidden;margin:6px 0 10px;font-weight:700;font-size:.92rem}
+.bar div{display:flex;align-items:center;justify-content:center;color:#fff;text-align:center;line-height:1.1;padding:0 6px}
+.b-bi{background:#2f6f4f} .b-bii{background:#4f8f6f} .b-bf{background:#7aa88f} .b-hp{background:#7a3e9d}
+.barkey{display:flex;gap:14px;flex-wrap:wrap;font-size:.86rem;color:var(--muted)}
+.barkey i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:14px}
+.fact{border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.fact b{display:block;font-size:1.3rem;color:var(--hp)}
+.fact span{font-size:.9rem;color:var(--muted)}
+.panel p,.panel li{font-size:.95rem}
+.panel ul{padding-left:18px;margin:6px 0}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+td,th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:var(--no)} .down{color:var(--ok)}
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:18px}
+footer{color:var(--muted);font-size:.82rem;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Vart kommer jag in?</h1>
+  <p class="lead">Välj vilka betyg du tror att du har när du går ut, och testa gärna ett resultat på högskoleprovet. Sidan visar vilka utbildningar du hade kommit in på i höstas – på Stockholms universitet, Södertörns högskola och Örebro universitet.</p>
+
+  <div class="controls">
+    <div class="panel">
+      <h2>1. Dina betyg</h2>
+      <div class="presets">
+        <button class="preset" data-mv="11.25" aria-pressed="true"><b>Mest E och D</b><span>Meritvärde ungefär 10–12,5</span></button>
+        <button class="preset" data-mv="16.25" aria-pressed="false"><b>Mest C och B</b><span>Meritvärde ungefär 15–17,5</span></button>
+      </div>
+      <div class="slider-row">
+        <label for="mv">Meritvärde</label>
+        <input id="mv" type="range" min="10" max="22.5" step="0.05" value="11.25">
+        <div class="mv" id="mvOut">11,25</div>
+      </div>
+      <p class="hint">E = 10 · D = 12,5 · C = 15 · B = 17,5 · A = 20. Meritpoäng (t.ex. moderna språk eller Engelska 7) kan ge upp till 2,5 extra.</p>
+    </div>
+    <div class="panel hp-off" id="hpPanel">
+      <h2>2. Högskoleprovet</h2>
+      <label class="switch"><input type="checkbox" id="hpOn"> Jag tänker skriva högskoleprovet</label>
+      <div class="slider-row">
+        <label for="hp">Resultat</label>
+        <input id="hp" type="range" min="0.05" max="2" step="0.05" value="1.00">
+        <div class="mv" id="hpOut">1,00</div>
+      </div>
+      <p class="hint">Skalan går från 0,05 till 2,0. Du är med i <b>både</b> betygsgruppen och provgruppen – det bästa av dem gäller.</p>
+    </div>
+  </div>
+
+  <div class="panel filters">
+    <div class="chips" id="chips"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--ok)"></i>In på betygen</span>
+      <span><i class="dot" style="background:var(--hp)"></i>In bara tack vare högskoleprovet</span>
+      <span><i class="dot" style="background:var(--near)"></i>Nära – mindre än 1 meritpoäng ifrån</span>
+      <span><i class="dot" style="background:var(--no)"></i>För långt ifrån</span>
+      <span><i class="dot" style="background:var(--test)"></i>Tester, inte betyg</span>
+    </div>
+  </div>
+
+  <div class="summary" id="summary"></div>
+  <div class="cols" id="cols"></div>
+
+  <h2 class="section-title">Hur många kommer in på högskoleprovet?</h2>
+  <div class="quota">
+    <div class="panel">
+      <p style="margin-top:0">Platserna på ett program delas upp i <b>grupper</b>. Så här brukar 100 platser fördelas på ett vanligt program:</p>
+      <div class="bar" aria-label="Ungefär 66 platser via betyg och 34 via högskoleprovet">
+        <div class="b-bi" style="flex:46">Betyg<br>≈ 46</div>
+        <div class="b-bii" style="flex:13">≈ 13</div>
+        <div class="b-bf" style="flex:7">≈ 7</div>
+        <div class="b-hp" style="flex:34">Högskoleprov<br>≈ 34</div>
+      </div>
+      <div class="barkey">
+        <span><i style="background:#2f6f4f"></i>Gymnasiebetyg (BI) – du</span>
+        <span><i style="background:#4f8f6f"></i>Kompletterade betyg / komvux (BII)</span>
+        <span><i style="background:#7aa88f"></i>Folkhögskola (BF)</span>
+        <span><i style="background:#7a3e9d"></i>Högskoleprovet (HP)</span>
+      </div>
+      <div class="facts">
+        <div class="fact"><b>Minst 1/3</b><span>av platserna ska enligt lag gå till högskoleprovet. På de flesta program blir det 34 %, på vissa 40 %.</span></div>
+        <div class="fact"><b>Ungefär 2/3</b><span>går till betyg. De delas mellan BI, BII och BF efter hur många som söker i varje grupp.</span></div>
+        <div class="fact"><b>≈ 78 av 230</b><span>Exempel: Företagsekonomi på SU tar in 230 i höst – ungefär 78 av dem via högskoleprovet.</span></div>
+      </div>
+      <p class="hint">Fördelningen mellan BI, BII och BF i stapeln är ett exempel. Den ändras från program till program beroende på vilka som söker.</p>
+    </div>
+    <div class="panel">
+      <h2>Det här är bra att veta</h2>
+      <ul>
+        <li><b>Provet är en extra chans, inte en annan väg.</b> Skriver du provet tävlar du i båda grupperna samtidigt. Det kan bara hjälpa.</li>
+        <li><b>Du tävlar mot alla som skrivit provet</b> – också de med toppbetyg. Gränsen på ett populärt program kan därför vara hög.</li>
+        <li><b>Du kan skriva provet flera gånger.</b> Det bästa resultatet räknas, och ett resultat gäller i åtta år.</li>
+        <li><b>Betygen behövs ändå.</b> Du måste vara behörig – gymnasieexamen och rätt kurser – för att få använda ditt provresultat.</li>
+        <li><b>Provet ges två gånger per år</b>, på våren och hösten. Du kan skriva det redan medan du går på gymnasiet.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info">
+    <div class="panel">
+      <h2>Gränserna ändras varje år</h2>
+      <p>Siffrorna visar var gränsen hamnade i höstas. När du söker kan den vara högre eller lägre.</p>
+      <table>
+        <tr><th></th><th class="n">2025</th><th class="n">2026</th></tr>
+        <tr><td>Socionom, SU</td><td class="n">17,66</td><td class="n up">18,65 ▲</td></tr>
+        <tr><td>Företagsekonomi, SU</td><td class="n">19,58</td><td class="n up">19,90 ▲</td></tr>
+        <tr><td>Ekonomie kandidat, Södertörn</td><td class="n">17,97</td><td class="n up">18,11 ▲</td></tr>
+        <tr><td>Civilekonom, Örebro</td><td class="n">19,17</td><td class="n up">19,27 ▲</td></tr>
+        <tr><td>Data- och systemvetenskap, SU</td><td class="n">18,28</td><td class="n down">18,02 ▼</td></tr>
+      </table>
+    </div>
+    <div class="panel">
+      <h2>Kom ihåg</h2>
+      <ul>
+        <li><b>Behörighet först.</b> Program märkta <span class="tag">Kräver Ma 3b</span> kräver Matematik 3b. Den ingår inte automatiskt i ekonomiprogrammet. Kolla alltid kraven på antagning.se.</li>
+        <li><b>Våren är ofta lättare.</b> Många program startar också i januari, och då är gränsen ofta lägre.</li>
+        <li><b>”Alla in”</b> betyder att alla som hade rätt kurser kom in, oavsett betyg.</li>
+        <li><b>Polisutbildningen</b> (Södertörn) har inget betygsurval. Du behöver grundläggande behörighet plus svenska, engelska och samhällskunskap. Sedan ska du klara fysiska, medicinska och psykologiska tester. Du måste vara 18 år och ha B-körkort när utbildningen startar.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>Siffrorna är lägsta antagna i gruppen gymnasiebetyg (BI) och högskoleprov (HP), höstterminen 2026, andra urvalet, enligt UHR:s antagningsstatistik. Program märkta VT gäller vårterminen 2026. Uppdaterad oktober 2026.</footer>
+</div>
+
+<script>
+const AREAS = ["Alla","Ekonomi","Juridik","Samhälle & beteende","Socialt arbete","Lärare","Media & kommunikation","IT","Polis"];
+const UNIS = [
+  {id:"su", name:"Stockholms universitet", where:"Frescati, Stockholm"},
+  {id:"sh", name:"Södertörns högskola", where:"Flemingsberg, Huddinge"},
+  {id:"oru", name:"Örebro universitet", where:"Örebro"}
+];
+// bi/hp: lägsta antagna HT 2026, urval 2. all:true = alla behöriga antogs (båda grupperna).
+// hpAll:true = alla med provresultat antogs i HP-gruppen. ma3: kräver Matematik 3b. vt: siffror från VT 2026. note: specialnotering.
+const P = [
+  // Stockholms universitet
+  {u:"su",n:"Juristprogrammet",a:"Juridik",bi:20.68,hp:1.40,y:"4,5 år"},
+  {u:"su",n:"Kriminologi",a:"Juridik",bi:20.00,hp:1.20,y:"3 år"},
+  {u:"su",n:"Företagsekonomi (ekonomie kandidat)",a:"Ekonomi",bi:19.90,hp:1.30,y:"3 år",ma3:true},
+  {u:"su",n:"Journalistprogrammet",a:"Media & kommunikation",bi:19.60,hp:1.20,y:"3 år",note:"Ingen antagning 2026 – siffror från 2025"},
+  {u:"su",n:"Socionomprogrammet",a:"Socialt arbete",bi:18.65,hp:1.00,y:"3,5 år"},
+  {u:"su",n:"Personal, arbete och organisation (HR)",a:"Samhälle & beteende",bi:18.27,hp:0.95,y:"3 år"},
+  {u:"su",n:"Data- och systemvetenskap",a:"IT",bi:18.02,hp:1.15,y:"3 år"},
+  {u:"su",n:"Ämneslärare gymnasiet – samhällskunskap och historia",a:"Lärare",bi:17.91,hp:0.95,y:"5,5 år"},
+  {u:"su",n:"Statsvetenskap och offentlig styrning",a:"Samhälle & beteende",bi:17.30,hp:1.00,y:"3 år"},
+  {u:"su",n:"Pedagogik – ledarskap och kommunikation",a:"Samhälle & beteende",bi:17.14,hp:0.60,y:"3 år"},
+  {u:"su",n:"Sociologisk samhällsanalys",a:"Samhälle & beteende",bi:17.08,hp:0.90,y:"3 år"},
+  {u:"su",n:"Sociologi – arbetsliv och arbetsmarknad",a:"Samhälle & beteende",bi:14.84,hp:0.60,y:"3 år"},
+  {u:"su",n:"Ämneslärare gymnasiet – samhällskunskap och svenska som andraspråk",a:"Lärare",bi:14.53,hpAll:true,y:"5,5 år"},
+  {u:"su",n:"Grundlärare åk 4–6",a:"Lärare",all:true,y:"4 år"},
+  {u:"su",n:"Grundlärare F–3",a:"Lärare",all:true,y:"4 år"},
+  {u:"su",n:"Förskollärare",a:"Lärare",all:true,y:"3,5 år"},
+  // Södertörns högskola
+  {u:"sh",n:"Juridik – affärsrätt och offentlig rätt",a:"Juridik",bi:18.88,hp:1.10,y:"3 år"},
+  {u:"sh",n:"Personalvetarprogrammet – sociologi (HR)",a:"Samhälle & beteende",bi:18.33,hp:0.90,y:"3 år"},
+  {u:"sh",n:"Ekonomie kandidat – företagsekonomi",a:"Ekonomi",bi:18.11,hp:1.00,y:"3 år",ma3:true},
+  {u:"sh",n:"Socionomprogrammet – storstadsprofil",a:"Socialt arbete",bi:18.02,hp:0.85,y:"3,5 år"},
+  {u:"sh",n:"Entreprenörskap, innovation och marknad",a:"Ekonomi",bi:17.36,hp:0.85,y:"3 år"},
+  {u:"sh",n:"Management med IT",a:"IT",bi:17.30,hp:1.00,y:"3 år"},
+  {u:"sh",n:"Internationella ekonomprogrammet",a:"Ekonomi",bi:16.97,hp:0.85,y:"3 år",ma3:true},
+  {u:"sh",n:"Journalistik och digitala medier",a:"Media & kommunikation",bi:16.61,hp:0.85,y:"3 år"},
+  {u:"sh",n:"Sport management",a:"Ekonomi",bi:15.97,hp:0.80,y:"3 år"},
+  {u:"sh",n:"Internationella medievetarprogrammet",a:"Media & kommunikation",bi:15.85,hp:0.60,y:"3 år",vt:true},
+  {u:"sh",n:"Digital affärsutveckling inom event och projekt",a:"Ekonomi",bi:15.82,hp:0.70,y:"3 år"},
+  {u:"sh",n:"Pedagogik – ledarskap och delaktighet",a:"Samhälle & beteende",bi:14.70,hp:0.35,y:"3 år"},
+  {u:"sh",n:"Globala utvecklingsstudier",a:"Samhälle & beteende",bi:12.29,hpAll:true,y:"3 år"},
+  {u:"sh",n:"Retorikprogrammet – samhälle och strategisk kommunikation",a:"Media & kommunikation",all:true,y:"3 år"},
+  {u:"sh",n:"Hållbarhetsstrateg",a:"Samhälle & beteende",all:true,y:"3 år"},
+  {u:"sh",n:"Grundlärare F–3 – interkulturell profil",a:"Lärare",all:true,y:"4 år"},
+  {u:"sh",n:"Polisutbildningen",a:"Polis",polis:true,y:"2,5 år"},
+  // Örebro universitet
+  {u:"oru",n:"Juristprogrammet",a:"Juridik",bi:20.21,hp:1.25,y:"4,5 år"},
+  {u:"oru",n:"Civilekonomprogrammet",a:"Ekonomi",bi:19.27,hp:1.20,y:"4 år",ma3:true},
+  {u:"oru",n:"Kriminologiprogrammet",a:"Juridik",bi:19.22,hp:1.00,y:"3 år"},
+  {u:"oru",n:"Personalvetarprogrammet (HR)",a:"Samhälle & beteende",bi:18.50,hp:0.90,y:"3 år"},
+  {u:"oru",n:"Socionomprogrammet",a:"Socialt arbete",bi:18.13,hp:0.85,y:"3,5 år"},
+  {u:"oru",n:"Systemvetenskapliga programmet",a:"IT",bi:17.86,hp:1.00,y:"3 år"},
+  {u:"oru",n:"Medier, kommunikation och PR",a:"Media & kommunikation",bi:16.93,hp:0.75,y:"3 år"},
+  {u:"oru",n:"Ämneslärare gymnasiet – samhällskunskap och historia",a:"Lärare",bi:13.49,hpAll:true,y:"5 år"},
+  {u:"oru",n:"Språk, retorik och kommunikativt ledarskap",a:"Media & kommunikation",all:true,y:"3 år"},
+  {u:"oru",n:"Grundlärare F–3",a:"Lärare",all:true,y:"4 år"}
+];
+
+const fmt = v => v.toFixed(2).replace(".",",");
+let mv = 11.25, hp = 1.0, hpOn = false, area = "Alla";
+
+const viaBetyg = p => p.all || mv >= p.bi;
+const viaHp = p => hpOn && (p.all || p.hpAll || hp >= p.hp);
+
+function status(p){
+  if(p.polis) return "test";
+  if(viaBetyg(p)) return "ok";
+  if(viaHp(p)) return "hp";
+  if(p.bi - mv <= 1.0) return "near";
+  return "no";
+}
+function scoreHtml(p){
+  if(p.polis) return `<div class="row"><b>Tester</b></div><div class="row lbl">inget betygsurval</div>`;
+  if(p.all) return `<div class="row"><b class="hit">Alla in</b></div><div class="row lbl">alla behöriga</div>`;
+  const bOk = mv >= p.bi;
+  const hTxt = p.hpAll ? "alla in" : fmt(p.hp);
+  const hOk = p.hpAll || hp >= p.hp;
+  const hCls = hpOn ? (hOk ? "hit" : "miss") : "";
+  return `<div class="row"><span class="lbl">Betyg</span><b class="${bOk?"hit":""}">${fmt(p.bi)}</b></div>
+          <div class="row"><span class="lbl">Prov</span><b class="${hCls}">${hTxt}</b></div>`;
+}
+
+function render(){
+  document.getElementById("mvOut").textContent = fmt(mv);
+  document.getElementById("hpOut").textContent = fmt(hp);
+  document.getElementById("hpPanel").classList.toggle("hp-off", !hpOn);
+  const cols = document.getElementById("cols"); cols.innerHTML = "";
+  const sum = document.getElementById("summary"); sum.innerHTML = "";
+  const order = {ok:0,hp:1,near:2,test:3,no:4};
+  UNIS.forEach(u=>{
+    const list = P.filter(p=>p.u===u.id && (area==="Alla"||p.a===area));
+    const counted = list.filter(p=>!p.polis);
+    const ok = counted.filter(p=>status(p)==="ok").length;
+    const viaProv = counted.filter(p=>status(p)==="hp").length;
+    sum.insertAdjacentHTML("beforeend",
+      `<div class="sum"><h3>${u.name}</h3><p><strong>${ok+viaProv}</strong> av ${counted.length} program${viaProv?` · varav ${viaProv} tack vare provet`:""}</p></div>`);
+    list.sort((a,b)=> order[status(a)]-order[status(b)] || (b.bi||0)-(a.bi||0));
+    const items = list.map(p=>{
+      const s = status(p);
+      const tags = (s==="hp"?`<span class="tag hp">In via högskoleprovet</span>`:"")
+        + (p.ma3?`<span class="tag">Kräver Ma 3b</span>`:"")
+        + (p.vt?`<span class="tag">Start i januari (VT)</span>`:"")
+        + (p.note?`<span class="tag">${p.note}</span>`:"");
+      return `<div class="prog s-${s}"><div><div class="name">${p.n}</div><div class="meta">${p.a} · ${p.y}</div>${tags}</div><div class="score">${scoreHtml(p)}</div></div>`;
+    }).join("") || `<p class="where">Inga program i det här området.</p>`;
+    cols.insertAdjacentHTML("beforeend",
+      `<section class="col"><h2>${u.name}</h2><p class="where">${u.where}</p>${items}</section>`);
+  });
+}
+
+document.querySelectorAll(".preset").forEach(b=>{
+  b.addEventListener("click",()=>{
+    mv = parseFloat(b.dataset.mv);
+    document.getElementById("mv").value = mv;
+    document.querySelectorAll(".preset").forEach(x=>x.setAttribute("aria-pressed", x===b));
+    render();
+  });
+});
+document.getElementById("mv").addEventListener("input",e=>{
+  mv = parseFloat(e.target.value);
+  document.querySelectorAll(".preset").forEach(x=>x.setAttribute("aria-pressed", parseFloat(x.dataset.mv)===mv));
+  render();
+});
+document.getElementById("hpOn").addEventListener("change",e=>{ hpOn = e.target.checked; render(); });
+document.getElementById("hp").addEventListener("input",e=>{ hp = parseFloat(e.target.value); render(); });
+
+const chips = document.getElementById("chips");
+AREAS.forEach(a=>{
+  const c = document.createElement("button");
+  c.className="chip"; c.textContent=a; c.setAttribute("aria-pressed", a===area);
+  c.addEventListener("click",()=>{
+    area=a;
+    chips.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed", x.textContent===area));
+    render();
+  });
+  chips.appendChild(c);
+});
+render();
+</script>
+</body>
+</html>
