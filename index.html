@@ -77,7 +77,7 @@ input[type=range]{flex:1 1 200px;accent-color:var(--accent)}
 .score .hit{color:var(--ok)}
 .score .miss{color:var(--muted)}
 .s-ok{background:var(--ok-bg)} .s-hp{background:var(--hp-bg)}
-.s-near{background:var(--near-bg)} .s-no{background:var(--no-bg)} .s-test{background:var(--test-bg)}
+.s-near,.s-ma3{background:var(--near-bg)} .s-ma3{outline:2px dashed var(--near);outline-offset:-2px} .s-no{background:var(--no-bg)} .s-test{background:var(--test-bg)}
 
 .more{margin-top:6px;font-size:.86rem}
 .more summary{cursor:pointer;color:var(--accent);font-weight:600;list-style:none;display:inline-block}
@@ -130,6 +130,7 @@ footer{color:var(--muted);font-size:.82rem;margin-top:24px}
         <div class="mv" id="mvOut">11,25</div>
       </div>
       <p class="hint">E = 10 · D = 12,5 · C = 15 · B = 17,5 · A = 20. Meritpoäng (t.ex. moderna språk eller Engelska 7) kan ge upp till 2,5 extra.</p>
+      <label class="switch" style="margin:12px 0 0"><input type="checkbox" id="ma3On" style="accent-color:var(--accent)"> Jag har läst (eller ska läsa) Matematik 3b</label>
     </div>
     <div class="panel hp-off" id="hpPanel">
       <h2>2. Högskoleprovet</h2>
@@ -148,6 +149,7 @@ footer{color:var(--muted);font-size:.82rem;margin-top:24px}
     <div class="legend">
       <span><i class="dot" style="background:var(--ok)"></i>In på betygen</span>
       <span><i class="dot" style="background:var(--hp)"></i>In bara tack vare högskoleprovet</span>
+      <span><i class="dot" style="background:var(--near-bg);border:2px dashed var(--near);box-sizing:border-box"></i>Räcker – men du saknar Ma 3b</span>
       <span><i class="dot" style="background:var(--near)"></i>Nära – mindre än 1 meritpoäng ifrån</span>
       <span><i class="dot" style="background:var(--no)"></i>För långt ifrån</span>
       <span><i class="dot" style="background:var(--test)"></i>Tester, inte betyg</span>
@@ -296,15 +298,16 @@ function reqHtml(p){
   return `<details class="more"><summary>Läs mer: det här krävs</summary><div class="req"><p>För att få söka behöver du:</p><ul>${li}</ul>${extra}${polis}</div></details>`;
 }
 const fmt = v => v.toFixed(2).replace(".",",");
-let mv = 11.25, hp = 1.0, hpOn = false, area = "Alla";
+let mv = 11.25, hp = 1.0, hpOn = false, ma3On = false, area = "Alla";
 
 const viaBetyg = p => p.all || mv >= p.bi;
 const viaHp = p => hpOn && (p.all || p.hpAll || hp >= p.hp);
 
 function status(p){
   if(p.polis) return "test";
-  if(viaBetyg(p)) return "ok";
-  if(viaHp(p)) return "hp";
+  const needMa3 = (p.r||"").split(" ").includes("Ma3") && !ma3On;
+  if(viaBetyg(p)) return needMa3 ? "ma3" : "ok";
+  if(viaHp(p)) return needMa3 ? "ma3" : "hp";
   if(p.bi - mv <= 1.0) return "near";
   return "no";
 }
@@ -325,7 +328,7 @@ function render(){
   document.getElementById("hpPanel").classList.toggle("hp-off", !hpOn);
   const cols = document.getElementById("cols"); cols.innerHTML = "";
   const sum = document.getElementById("summary"); sum.innerHTML = "";
-  const order = {ok:0,hp:1,near:2,test:3,no:4};
+  const order = {ok:0,hp:1,ma3:2,near:3,test:4,no:5};
   UNIS.forEach(u=>{
     const list = P.filter(p=>p.u===u.id && (area==="Alla"||p.a===area));
     const counted = list.filter(p=>!p.polis);
@@ -337,7 +340,7 @@ function render(){
     const items = list.map(p=>{
       const s = status(p);
       p.ma3 = (p.r||"").split(" ").includes("Ma3");
-      const tags = (s==="hp"?`<span class="tag hp">In via högskoleprovet</span>`:"")
+      const tags = (s==="ma3"?`<span class="tag" style="border-color:var(--near);color:var(--near)">Poängen räcker – men Ma 3b saknas</span>`:"") + (s==="hp"?`<span class="tag hp">In via högskoleprovet</span>`:"")
         + (p.ma3?`<span class="tag">Kräver Ma 3b</span>`:"")
         + (p.vt?`<span class="tag">Start i januari (VT)</span>`:"")
         + (p.note?`<span class="tag">${p.note}</span>`:"");
@@ -361,6 +364,7 @@ document.getElementById("mv").addEventListener("input",e=>{
   document.querySelectorAll(".preset").forEach(x=>x.setAttribute("aria-pressed", parseFloat(x.dataset.mv)===mv));
   render();
 });
+document.getElementById("ma3On").addEventListener("change",e=>{ ma3On = e.target.checked; render(); });
 document.getElementById("hpOn").addEventListener("change",e=>{ hpOn = e.target.checked; render(); });
 document.getElementById("hp").addEventListener("input",e=>{ hp = parseFloat(e.target.value); render(); });
 
